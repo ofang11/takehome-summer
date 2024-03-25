@@ -6,19 +6,19 @@ class ConsumerAgent {
 
 class Gullible extends ConsumerAgent {
     purchaseQuantity(wallet, productPrice) {
-        if(wallet < productPrice){
+        if (wallet < productPrice) {
             return 0;
         }
         else {
             return Math.floor(wallet / productPrice);
         }
-        
+
     }
 }
 
 export class Gullible extends ConsumerAgent {
     purchaseQuantity(wallet, productPrice) {
-        if(wallet < productPrice){
+        if (wallet < productPrice) {
             return 0;
         }
         else {
@@ -39,12 +39,26 @@ export class TitforTat extends ConsumerAgent {
     }
 }
 
+class AnyinLastTwo extends ConsumerAgent {
+    purchaseQuantity(wallet, productPrice) {
+        return Math.floor(wallet / productPrice);
+    }
+}
+
+export class AnyinLastTwo extends ConsumerAgent {
+    purchaseQuantity(wallet, productPrice) {
+        return Math.floor(wallet / productPrice);
+    }
+}
+
 export function getConsumerAgentFromId(id) {
     switch (id) {
         case "Gullible":
             return new Gullible()
         case "Tit for tat":
             return new TitforTat()
+        case "Any in Last Two":
+            return new AnyinLastTwo()
         default:
             console.log("No bot found with that ID");
     }

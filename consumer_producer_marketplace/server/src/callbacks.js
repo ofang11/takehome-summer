@@ -337,7 +337,7 @@ async function updateProducerScores(game) {
           player.set("capital", capital + totalSales);
         }
       }
-      else if (roundNum > 1 && consumerAgent.cheatedHistory[roundNum-2] == false) {
+      else if (roundNum > 1 && consumerAgent.cheatedHistory[roundNum - 2] == false) {
         let wallet = consumerAgent.wallet;
         const mockQuantity = parseInt(wallet / productPrice);
         const soldStock = mockQuantity <= remainingStock ? mockQuantity : remainingStock
@@ -440,7 +440,7 @@ async function updateProducerScores(game) {
           player.set("capital", capital + totalSales);
         }
       }
-      else if (roundNum > 1 && consumerAgent.cheatedHistory[roundNum-2] == true) {
+      else if (roundNum > 1 && consumerAgent.cheatedHistory[roundNum - 2] == true) {
         let wallet = consumerAgent.wallet;
         const soldStock = 0;
         const totalCost = initialStock * productCost;
