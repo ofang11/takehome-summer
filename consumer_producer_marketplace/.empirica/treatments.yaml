@@ -51,3 +51,9 @@ treatments:
         isAuto: 1
         playerCount: 1
         strategy: titfortat
+      # Added anyinlasttwo to yaml file to be referenced in callbacks.js and SelectRoleStage.jsx
+    - name: Artificial Consumer - AnyInLastTwo
+      factors:
+        isAuto: 1
+        playerCount: 1
+        strategy: anyinlasttwo

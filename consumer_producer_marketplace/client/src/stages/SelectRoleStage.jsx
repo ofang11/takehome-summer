@@ -79,6 +79,7 @@ export function SelectRolesStage() {
                         },
                     ]);
                 }
+                // Added 'anyinlasttwo' and set agents
                 else if (strategy == "anyinlasttwo") {
                     game.set("agents", [
                         {

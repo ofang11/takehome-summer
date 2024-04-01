@@ -487,7 +487,151 @@ async function updateProducerScores(game) {
       console.log(others);
       game.set("agents", others);
     }
+    else if (consumerAgent.strategy === "anyinlasttwo") {
+      // Used the code for 'titfortat' as a skeleton to implement 'anyinlasttwo'
+      if (roundNum === 1) {
+        let wallet = consumerAgent.wallet;
+        const mockQuantity = parseInt(wallet / productPrice);
+        const soldStock = mockQuantity <= remainingStock ? mockQuantity : remainingStock
+        if (soldStock == 0) {
+          // Consumer should purchase all the stock they can during the first round 
+          purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+        } else {
+          // During the first round, if soldStock is not equal to 0, then purchase but 
+          // make sure to update item.round and trialStock
+          const trialStock = tempStock.map((item) => {
+            return item.round === round
+              ? {
+                ...item,
+                remainingStock: item.remainingStock - soldStock,
+                soldStock: item.soldStock + soldStock,
+              }
+              : item;
+          });
+          player.set("stock", trialStock);
+          console.log(soldStock)
+          purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+        }
+        // Have to check for the edgecase that the round is greater than 1 but but before 3
+        // as you can't check for last two rounds if there has only been 1 prior round
+      } else if (roundNum === 2) {
+        // Be sure to check roundNum - 2 since roundNum begins at one
+        // while cheatedHistory is a zero-indexed array
+        if (consumerAgent.cheatedHistory[roundNum - 2] == false) {
+          let wallet = consumerAgent.wallet;
+          const mockQuantity = parseInt(wallet / productPrice);
+          const soldStock = mockQuantity <= remainingStock ? mockQuantity : remainingStock
+          if (soldStock == 0) {
+            console.log(soldStock)
+            purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+          }
+          else {
+            const trialStock = tempStock.map((item) => {
+              return item.round === round
+                ? {
+                  ...item,
+                  remainingStock: item.remainingStock - soldStock,
+                  soldStock: item.soldStock + soldStock,
+                }
+                : item;
+            });
+            player.set("stock", trialStock);
+            purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+          }
+        }
+        else {
+          let wallet = consumerAgent.wallet;
+          const soldStock = 0
+          purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+        }
+      } else {
+        // First check if there have been any cheats in the last two rounds, if not then 
+        // follow regular purchasing logic from round 1 
+        if (consumerAgent.cheatedHistory[roundNum - 2] == false && consumerAgent.cheatedHistory[roundNum - 3] == false) {
+          let wallet = consumerAgent.wallet;
+          const mockQuantity = parseInt(wallet / productPrice);
+          const soldStock = mockQuantity <= remainingStock ? mockQuantity : remainingStock
+          if (soldStock == 0) {
+            console.log(soldStock)
+            purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+          }
+          else {
+            const trialStock = tempStock.map((item) => {
+              return item.round === round
+                ? {
+                  ...item,
+                  remainingStock: item.remainingStock - soldStock,
+                  soldStock: item.soldStock + soldStock,
+                }
+                : item;
+            });
+            player.set("stock", trialStock);
+            purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+          }
+        } else {
+          // If there has been a cheat in the last two rounds, set soldStock equal to 0 and purchase
+          let wallet = consumerAgent.wallet;
+          const soldStock = 0
+          console.log(soldStock)
+          purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet)
+        }
+      }
+      others.push(consumerAgent);
+      console.log(others);
+      game.set("agents", others);
+    }
+
   });
+}
+
+// Abstract the purchasing mechanic from the 'gullible' and 'titfortat' code
+// Call this when a purchase is made -- either with soldStock being zero or as much as the consumer can purchase
+function purchase(initialStock, productCost, soldStock, productPrice, player, consumerAgent, productQuality, productAdQuality, round, roundNum, value, others, capital, remainingStock, wallet) {
+
+  const totalCost = initialStock * productCost;
+  const totalSales = soldStock * productPrice;
+  const originalScore = player.get("score") || 0;
+  let score = player.get("score") || 0;
+  score += (totalSales - totalCost);
+
+  consumerAgent.purchaseHistory.push({
+    productQuality: productQuality,
+    productAdQuality: productAdQuality,
+    quantity: soldStock,
+    round: round,
+    roundNum: roundNum,
+  });
+  let consumerScore = consumerAgent.score;
+  consumerScore = (value - productPrice) * soldStock;
+  consumerAgent.score = consumerScore;
+  consumerAgent.scores.push({
+    score: consumerScore,
+    round: round,
+    roundNum: roundNum
+  });
+  others.forEach(producerAgent => {
+    producerAgent.scores.push({
+      score: score,
+      round: round,
+      roundNum: roundNum
+    });
+    producerAgent.productionHistory.push({
+      productQuality: productQuality,
+      productAdQuality: productAdQuality,
+      initialStock: initialStock,
+      remainingStock: remainingStock,
+      soldStock: soldStock,
+      round: round,
+      roundNum: roundNum
+    })
+  });
+  let cheated = productAdQuality === productQuality ? false : productAdQuality === "low" && productQuality === "high" ? false : true
+  consumerAgent.cheatedHistory.push(cheated)
+  wallet = wallet - parseInt(productPrice * soldStock);
+  consumerAgent.wallet = wallet;
+  player.set("score", score);
+  player.set("scoreDiff", score - originalScore);
+  player.set("capital", capital + totalSales);
 }
 
 // Function to assign roles to players
